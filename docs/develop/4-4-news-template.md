@@ -106,3 +106,37 @@ md 摘要為一個分類 key, 共四種:
 如何查找你的SteamId：
 個人檔案->帳戶詳細資料->帳戶名稱的下方
 ```
+
+## 半自動抓取(尚未排程時的補償辦法)
+
+目前**沒有**任何排程或 GitHub Action 會自動抓 Steam 新聞,  
+所以在「自動化上線」之前,請用 `tools/fetchNews.js` 手動抓取當作補償辦法。
+
+它會抓活俠傳 Steam 新聞,依分類產出符合上述格式的草稿檔到 `docs/other/news/`。
+
+### 用法
+
+```bash
+node tools/fetchNews.js --selftest   # 純函式回歸測試, 印 "selftest OK" 即正常
+node tools/fetchNews.js --dry-run    # 只列出會產生哪些檔, 不寫入
+node tools/fetchNews.js              # 實際產出草稿檔
+```
+
+產完草稿後 → **人工檢查/微調內容** → 需要時把檔名 suffix 改成 `demoUpdate` / `majorUpdate` → `npm run build`。
+
+### 運作方式
+
+- **來源**：Steam RSS(`?l=tchinese`)提供正確的 view 連結、繁中標題、發表日期;
+  Steam JSON API 提供 `tags` 與內文。兩者以同一個 unix `date` 對接
+  (RSS 的 gid 才是正確連結,JSON API 的 gid 不同,不能用來組連結)。
+- **分類**：只看 Steam 標籤 —— `patchnotes` → `release`,其餘 → `announce`。
+  `demoUpdate` / `majorUpdate` 沒有對應標籤,需依上表判斷後手動改檔名 suffix。
+- **去重**：掃現有檔案的 `/view/{gid}`,已存在就跳過(重複執行安全)。
+- **排版**：自動套用本頁的舊風格(每行結尾兩個空格硬換行);
+  `release` 另外把 Steam 的 `調整`/`修正` 標題改成 `功能調整`/`功能修正`。
+- **防呆**：RSS 解析到 0 則會直接報錯(避免 feed 格式改變時靜默當成「沒有新聞」);
+  某則對不到 API 內文時會 warn 提醒該篇 body 需手補。
+
+::: warning 注意
+產出為**草稿**,BBCode→markdown 為近似轉換,發表日期取 Steam 發布時間(未必等於內文標註的更新日),請 merge 前人工確認。
+:::
