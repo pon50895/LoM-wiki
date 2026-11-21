@@ -151,7 +151,8 @@
 /* 開發項目頁：寬螢幕 PC 放寬左側選單與內文欄，手機/平板維持預設 */
 @media (min-width: 1440px) {
   .dev-page {
-    --vp-sidebar-width: 360px; /* 預設 272px，第二、三階選單太擠 */
+    /* 以第三階為準：左右內距 64px + 第三階縮排 17px + 15 個 14px 字（最長標題一行放得下），一、二階共用此寬度 */
+    --vp-sidebar-width: calc(64px + 17px + 15 * 14px);
   }
   .dev-page .VPDoc.has-aside .content-container {
     max-width: 960px;
